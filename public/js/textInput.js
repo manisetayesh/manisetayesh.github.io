@@ -22,7 +22,7 @@ const gridPages = ['academics', 'forays'];
 
 
 const IS_LOCAL = window.location.hostname === 'localhost';
-const API = IS_LOCAL ? '' : 'https://manisetayesh.github.io/personal-page/';
+const API = IS_LOCAL ? '' : 'https://manisetayesh.github.io/personal-page';
 if (IS_LOCAL) {
   document.querySelectorAll('.add-entry-btn').forEach(btn => btn.style.display = 'block');
 } else {
@@ -30,7 +30,17 @@ if (IS_LOCAL) {
 }
 async function fetchEntries() {
   const res = await fetch(`${API}/data/entries.json`);
-  allEntries = await res.json();
+  if (!res.ok) {
+    console.error('Fetch failed:', res.status, res.url);
+    return;
+  }
+  const text = await res.text();
+  console.log('Raw response:', text); // see what's actually returned
+  try {
+    allEntries = JSON.parse(text);
+  } catch (e) {
+    console.error('JSON parse failed:', e);
+  }
 }
 
 async function persistEntries() {
