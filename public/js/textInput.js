@@ -133,41 +133,33 @@ function buildGridEntryEl(entry, page, entries) {
       <div class="entry-card-date">${entry.date}</div>
     </div>
   `;
-
   el.addEventListener('click', (e) => {
     if (e.target.classList.contains('entry-delete')) return;
-    const expanded = document.querySelector('.entry-card-expanded');
-    if (expanded && expanded !== el) {
-      expanded.classList.remove('entry-card-expanded');
-      expanded.querySelector('.entry-card-body')?.remove();
-      expanded.querySelector('.entry-delete')?.remove();
-    }
 
     el.classList.toggle('entry-card-expanded');
     if (el.classList.contains('entry-card-expanded')) {
-    const body = document.createElement('div');
-    body.className = 'entry-card-body';
-    body.innerHTML = renderMarkdown(entry.body);
-    el.appendChild(body);
+      const body = document.createElement('div');
+      body.className = 'entry-card-body';
+      body.innerHTML = renderMarkdown(entry.body);
+      el.appendChild(body);
 
-    if (IS_LOCAL) {
-      const del = document.createElement('button');
-      del.className = 'entry-delete';
-      del.textContent = '✕ delete';
-      del.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        allEntries[page] = allEntries[page].filter(e => e.id !== entry.id);
-        await persistEntries();
-        el.remove();
-      });
-      el.appendChild(del);
-    }
-  } else {
+      if (IS_LOCAL) {
+        const del = document.createElement('button');
+        del.className = 'entry-delete';
+        del.textContent = '✕ delete';
+        del.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          allEntries[page] = allEntries[page].filter(e => e.id !== entry.id);
+          await persistEntries();
+          el.remove();
+        });
+        el.appendChild(del);
+      }
+    } else {
       el.querySelector('.entry-card-body')?.remove();
       el.querySelector('.entry-delete')?.remove();
     }
   });
-
   return el;
 }
 

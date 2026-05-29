@@ -5,7 +5,6 @@ const path = require('path');
 
 const app = express();
 const DATA_FILE = path.join(__dirname, 'data', 'entries.json');
-const ADMIN_KEY = process.env.ADMIN_KEY;
 
 app.use(express.json());
 app.use(express.static('public'));
@@ -16,7 +15,7 @@ app.get('/api/entries', (req, res) => {
 });
 
 app.post('/api/entries', (req, res) => {
-  if (req.headers['x-admin-key'] !== ADMIN_KEY) {
+  if (req.headers['x-admin-key'] !== process.env.ADMIN_KEY) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   fs.writeFileSync(DATA_FILE, JSON.stringify(req.body, null, 2));
