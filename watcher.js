@@ -1,5 +1,8 @@
 const { execSync } = require('child_process');
 
+setInterval(() => {}, 1000 * 60 * 60);
+console.log('watching...');
+
 process.on('SIGINT', () => {
   try {
     execSync('git add public/data/entries.json');
