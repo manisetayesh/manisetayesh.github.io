@@ -29,6 +29,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
+      - name: Inject cache-bust version
+        run: |
+          VERSION=$(date +%Y%m%d%H%M%S)
+          sed -i "s/main\.js\"/main.js?v=$VERSION\"/" public/index.html
+          sed -i "s/style\.css\"/style.css?v=$VERSION\"/" public/index.html
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup Pages
