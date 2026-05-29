@@ -24,27 +24,22 @@ const gridPages = ['academics', 'forays'];
 const IS_LOCAL = window.location.hostname === 'localhost';
 const API = IS_LOCAL ? '' : 'https://manisetayesh.github.io/personal-page';
 if (IS_LOCAL) {
-  document.querySelectorAll('.add-entry-btn').forEach(btn => btn.style.display = 'block');
+  document.querySelectorAll('.add-entry-btn').forEach(btn => {
+    btn.style.display = 'block';
+    btn.addEventListener('click', () => openComposer(btn.dataset.page));
+  });
 } else {
   document.querySelectorAll('.add-entry-btn').forEach(btn => btn.style.display = 'none');
 }
 async function fetchEntries() {
   const res = await fetch(`${API}/data/entries.json`);
-  if (!res.ok) {
-    console.error('Fetch failed:', res.status, res.url);
-    return;
-  }
   const text = await res.text();
-  console.log('Raw response:', text); // see what's actually returned
-  try {
-    allEntries = JSON.parse(text);
-  } catch (e) {
-    console.error('JSON parse failed:', e);
-  }
+  console.log('Raw response:', text);
+  allEntries = JSON.parse(text);
 }
 
 async function persistEntries() {
-  if (!IS_LOCAL) return; // read-only on GitHub Pages
+  if (!IS_LOCAL) return; 
   await fetch('/api/entries', {
     method: 'POST',
     headers: {
@@ -118,6 +113,8 @@ function openComposer(page) {
 
 // ── Init ──────────────────────────────────────────────────────
 async function init() {
+  
+
   await fetchEntries();
   ['academics', 'writing', 'forays'].forEach(renderEntries);
 }
@@ -148,10 +145,12 @@ function buildGridEntryEl(entry, page, entries) {
 
     el.classList.toggle('entry-card-expanded');
     if (el.classList.contains('entry-card-expanded')) {
-      const body = document.createElement('div');
-      body.className = 'entry-card-body';
-      body.innerHTML = renderMarkdown(entry.body);
+    const body = document.createElement('div');
+    body.className = 'entry-card-body';
+    body.innerHTML = renderMarkdown(entry.body);
+    el.appendChild(body);
 
+    if (IS_LOCAL) {
       const del = document.createElement('button');
       del.className = 'entry-delete';
       del.textContent = '✕ delete';
@@ -160,10 +159,10 @@ function buildGridEntryEl(entry, page, entries) {
         allEntries[page] = allEntries[page].filter(e => e.id !== entry.id);
         await persistEntries();
         el.remove();
-        });
-      el.appendChild(body);
+      });
       el.appendChild(del);
-    } else {
+    }
+  } else {
       el.querySelector('.entry-card-body')?.remove();
       el.querySelector('.entry-delete')?.remove();
     }
@@ -196,8 +195,3 @@ function buildEntryEl(entry, page, entries) {
 }
 
 // ── Wire up + buttons and load on init ────────────────────────
-document.querySelectorAll('.add-entry-btn').forEach(btn => {
-  btn.addEventListener('click', () => openComposer(btn.dataset.page));
-});
-
-['academics', 'writing', 'forays'].forEach(renderEntries);

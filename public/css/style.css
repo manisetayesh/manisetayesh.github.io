@@ -309,34 +309,6 @@ footer {
     overflow-x: auto;
 }
 
-.entry-delete {
-    background: none;
-    border: none;
-    color: var(--ink);
-    cursor: pointer;
-    font-size: 0.75rem;
-    opacity: 0.3;
-    padding: 0;
-    transition: opacity 0.2s;
-}
-
-.entry-delete:hover {
-    opacity: 1;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(6px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-
 .entries-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -348,12 +320,12 @@ footer {
     border: 1px solid var(--ink);
     cursor: pointer;
     padding: 1rem;
-    transition: background 0.15s;
+    transition: background 0.15s, color 0.15s;
     opacity: 0;
     animation: fadeIn 0.3s forwards;
 }
 
-.entry-card:hover {
+.entry-card:hover{
     background: var(--ink);
     color: var(--bg);
 }
@@ -371,27 +343,43 @@ footer {
 .entry-card-date {
     font-size: 0.75rem;
     opacity: 0.5;
+    color: currentColor;
 }
 
 .entry-card-body {
     margin-top: 1rem;
     font-size: 0.85rem;
     line-height: 1.6;
-    border-top: 1px solid var(--bg);
+    border-top: 1px solid currentColor;
     padding-top: 0.75rem;
     cursor: default;
 }
 
-.entry-card .entry-delete {
-    display: block;
-    margin-top: 0.75rem;
+.entry-delete {
+    background: none;
+    border: 1px solid currentColor;
+    color: currentColor;
+    cursor: pointer;
     font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    margin-top: 0.75rem;
     opacity: 0.5;
-    color: var(--bg);
-    border-color: var(--bg);
+    transition: opacity 0.2s;
 }
 
-.entry-card .entry-delete:hover {
+.entry-delete:hover {
     opacity: 1;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
