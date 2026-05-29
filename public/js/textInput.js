@@ -22,7 +22,7 @@ const gridPages = ['academics', 'forays'];
 
 
 const IS_LOCAL = window.location.hostname === 'localhost';
-const API = IS_LOCAL ? '' : 'https://yourusername.github.io/your-repo';
+const API = IS_LOCAL ? '' : 'https://manisetayesh.github.io/personal-page/';
 if (IS_LOCAL) {
   document.querySelectorAll('.add-entry-btn').forEach(btn => btn.style.display = 'block');
 } else {
