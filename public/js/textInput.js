@@ -15,23 +15,40 @@ function renderMarkdown(md) {
     .replace(/<p><\/p>/g, '');
 }
 
-// ── Entry storage ──────────────────────────────────────────────
-function loadEntries(page) {
-  return JSON.parse(localStorage.getItem(`entries-${page}`) || '[]');
-}
-
-function saveEntries(page, entries) {
-  localStorage.setItem(`entries-${page}`, JSON.stringify(entries));
-}
-
 // ── Render all saved entries for a page ───────────────────────
+let allEntries = { academics: [], writing: [], forays: [] };
+const ADMIN_KEY = localStorage.getItem('admin-key');
 const gridPages = ['academics', 'forays'];
+
+
+const IS_LOCAL = window.location.hostname === 'localhost';
+const API = IS_LOCAL ? '' : 'https://yourusername.github.io/your-repo';
+if (IS_LOCAL) {
+  document.querySelectorAll('.add-entry-btn').forEach(btn => btn.style.display = 'block');
+} else {
+  document.querySelectorAll('.add-entry-btn').forEach(btn => btn.style.display = 'none');
+}
+async function fetchEntries() {
+  const res = await fetch(`${API}/data/entries.json`);
+  allEntries = await res.json();
+}
+
+async function persistEntries() {
+  if (!IS_LOCAL) return; // read-only on GitHub Pages
+  await fetch('/api/entries', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-admin-key': ADMIN_KEY
+    },
+    body: JSON.stringify(allEntries)
+  });
+}
 
 function renderEntries(page) {
   const container = document.getElementById(`entries-${page}`);
   if (!container) return;
-  const entries = loadEntries(page);
-
+  const entries = allEntries[page] || [];
   if (gridPages.includes(page)) {
     container.className = 'entries entries-grid';
     entries.forEach(entry => container.appendChild(buildGridEntryEl(entry, page, entries)));
@@ -41,56 +58,61 @@ function renderEntries(page) {
   }
 }
 
-// ── Composer (open/close + save) ──────────────────────────────
 function openComposer(page) {
-    const container = document.getElementById(`entries-${page}`);
-    if (container.querySelector('.entry-composer')) return; // already open
-    console.log(page)
-    const composer = document.createElement('div');
-    composer.className = 'entry-composer';
-    composer.innerHTML = `
+  const container = document.getElementById(`entries-${page}`);
+  if (document.querySelector(`.entry-composer[data-page="${page}"]`)) return;
+
+  const composer = document.createElement('div');
+  composer.className = 'entry-composer';
+  composer.dataset.page = page;
+  composer.innerHTML = `
     <input type="text" placeholder="Title" class="composer-title" />
     <textarea placeholder="Write in markdown…" class="composer-body"></textarea>
     <div class="composer-actions">
-    <button class="composer-save">Save</button>
-    <button class="composer-cancel">Cancel</button>
+      <button class="composer-save">Save</button>
+      <button class="composer-cancel">Cancel</button>
     </div>
-    `;
+  `;
 
-    if (gridPages.includes(page)) {
-        container.insertAdjacentElement('beforebegin', composer);
-    } else {
-        container.prepend(composer);
-    }
-    composer.querySelector('.composer-title').focus();
+  if (gridPages.includes(page)) {
+    container.insertAdjacentElement('beforebegin', composer);
+  } else {
+    container.prepend(composer);
+  }
 
-    composer.querySelector('.composer-cancel').addEventListener('click', () => composer.remove());
+  composer.querySelector('.composer-title').focus();
+  composer.querySelector('.composer-cancel').addEventListener('click', () => composer.remove());
 
-    composer.querySelector('.composer-save').addEventListener('click', () => {
+  composer.querySelector('.composer-save').addEventListener('click', async () => {
     const title = composer.querySelector('.composer-title').value.trim();
     const body  = composer.querySelector('.composer-body').value.trim();
     if (!body) return;
 
-    const entries = loadEntries(page);
     const entry = {
-        id:    Date.now().toString(),
-        title: title || 'Untitled',
-        date:  new Date().toLocaleDateString('en-CA'),
-        body
+      id:    Date.now().toString(),
+      title: title || 'Untitled',
+      date:  new Date().toLocaleDateString('en-CA'),
+      body
     };
-    entries.unshift(entry);
-    saveEntries(page, entry.id ? entries : [entry, ...entries]);
-    saveEntries(page, entries);
+
+    allEntries[page].unshift(entry);
+    await persistEntries();
 
     composer.remove();
-    const container = document.getElementById(`entries-${page}`);
     const entryEl = gridPages.includes(page)
-        ? buildGridEntryEl(entry, page, entries)
-        : buildEntryEl(entry, page, entries);
-    container.prepend(entryEl);
-    });
+      ? buildGridEntryEl(entry, page, allEntries[page])
+      : buildEntryEl(entry, page, allEntries[page]);
+    document.getElementById(`entries-${page}`).prepend(entryEl);
+  });
 }
 
+// ── Init ──────────────────────────────────────────────────────
+async function init() {
+  await fetchEntries();
+  ['academics', 'writing', 'forays'].forEach(renderEntries);
+}
+
+init();
 
 
 // ── Render a GRID entry (academics + forays) ──────────────────
@@ -123,13 +145,12 @@ function buildGridEntryEl(entry, page, entries) {
       const del = document.createElement('button');
       del.className = 'entry-delete';
       del.textContent = '✕ delete';
-      del.addEventListener('click', (e) => {
+      del.addEventListener('click', async (e) => {
         e.stopPropagation();
-        const updated = entries.filter(e => e.id !== entry.id);
-        saveEntries(page, updated);
+        allEntries[page] = allEntries[page].filter(e => e.id !== entry.id);
+        await persistEntries();
         el.remove();
-      });
-
+        });
       el.appendChild(body);
       el.appendChild(del);
     } else {
@@ -156,11 +177,11 @@ function buildEntryEl(entry, page, entries) {
     </div>
     <div class="entry-body">${renderMarkdown(entry.body)}</div>
   `;
-  el.querySelector('.entry-delete').addEventListener('click', () => {
-    const updated = entries.filter(e => e.id !== entry.id);
-    saveEntries(page, entries.filter(e => e.id !== entry.id));
+  el.querySelector('.entry-delete').addEventListener('click', async () => {
+    allEntries[page] = allEntries[page].filter(e => e.id !== entry.id);
+    await persistEntries();
     el.remove();
-  });
+    });
   return el;
 }
 
