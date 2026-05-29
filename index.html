@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mani's Personal Page</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css">
+  
+</head>
+<body>
+    <div class="container">
+        <div class="site-title">Mani<span>'</span>s Personal Page</div>
+
+        <header>
+            <div class="header-buttons">
+                <button id="home-btn" class="header-btn" aria-label="Go home">⌂</button>
+                <button id="theme-toggle" class="header-btn" aria-label="Toggle dark mode">◐</button>
+            </div>
+            <div class="nav-links">
+                <a href="#" data-page="academics">Academics</a>
+                <a href="#" data-page="writing">Writings</a>
+                <a href="#" data-page="forays">Forays</a>
+                <a href="#" data-page="about">About</a>
+            </div>
+        </header>
+    </div>
+
+    <div id="page-home" class="page active">
+        <div class="container">
+            <section class="hero">
+            <h1>Welcome Home</h1>
+            </section>
+        </div>
+    </div>
+
+    <div id="page-academics" class="page">
+        <div class="container">
+            <section class="hero">
+                <h1>Academics</h1>
+            </section>
+            <div class="entries-header">
+                <button class="add-entry-btn" data-page="academics">+</button>
+            </div>
+            <div class="entries" id="entries-academics"></div>
+        </div>
+    </div>
+
+    <div id="page-writing" class="page">
+        <div class="container">
+            <section class="hero">
+                <h1>Writings</h1>
+            </section>
+            <div class="entries-header">
+                <button class="add-entry-btn" data-page="writing">+</button>
+            </div>
+            <div class="entries" id="entries-writing"></div>
+        </div>
+    </div>
+
+    <div id="page-forays" class="page">
+        <div class="container">
+        <section class="hero">
+            <h1>Forays</h1>
+        </section>
+            <div class="entries-header">
+                <button class="add-entry-btn" data-page="forays">+</button>
+            </div>
+            <div class="entries" id="entries-forays"></div>
+        </div>
+    </div>
+
+  <div id="page-about" class="page">
+    <div class="container">
+      <section class="about-section hero">
+        <div>
+          <h2>About me</h2>
+          <p>Some guy</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="container">
+    <footer>
+      <span>© 2026 Mani, feat. Claude</span>
+    </footer>
+  </div>
+
+</body>
+
+<script src="js/main.js"></script>
+<script src="js/textInput.js"></script>
+
+</html>
