@@ -10,14 +10,10 @@ app.use(express.json());
 app.use(express.static('public'));
 
 app.get('/api/entries', (req, res) => {
-  const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-  res.json(data);
+  res.json(JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')));
 });
 
 app.post('/api/entries', (req, res) => {
-  if (req.headers['x-admin-key'] !== process.env.ADMIN_KEY) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
   fs.writeFileSync(DATA_FILE, JSON.stringify(req.body, null, 2));
   res.json({ ok: true });
 });

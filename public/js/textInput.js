@@ -1,7 +1,9 @@
 // ── Minimal markdown renderer ──────────────────────────────────
 function renderMarkdown(md) {
   return md
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
     .replace(/^# (.+)$/gm, '<h1>$1</h1>')
@@ -17,24 +19,23 @@ function renderMarkdown(md) {
 
 // ── Render all saved entries for a page ───────────────────────
 let allEntries = { academics: [], writing: [], forays: [] };
-const ADMIN_KEY = localStorage.getItem('admin-key');
 const gridPages = ['academics', 'forays'];
-
-
+const allPages = ['academics', 'writing', 'forays']
 const IS_LOCAL = window.location.hostname === 'localhost';
-const API = IS_LOCAL ? '' : 'https://manisetayesh.github.io/personal-page';
-if (IS_LOCAL) {
-  document.querySelectorAll('.add-entry-btn').forEach(btn => {
+const API = IS_LOCAL ? '' : 'https://manisetayesh.github.io/';
+
+document.querySelectorAll('.add-entry-btn').forEach(btn => {
+  if (IS_LOCAL) {
     btn.style.display = 'block';
     btn.addEventListener('click', () => openComposer(btn.dataset.page));
-  });
-} else {
-  document.querySelectorAll('.add-entry-btn').forEach(btn => btn.style.display = 'none');
-}
+  } else {
+    btn.style.display = 'none'
+  }
+});
+
 async function fetchEntries() {
   const res = await fetch(`${API}/data/entries.json`);
   const text = await res.text();
-  console.log('Raw response:', text);
   allEntries = JSON.parse(text);
 }
 
@@ -43,8 +44,7 @@ async function persistEntries() {
   await fetch('/api/entries', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'x-admin-key': ADMIN_KEY
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify(allEntries)
   });
@@ -87,7 +87,6 @@ function openComposer(page) {
 
   composer.querySelector('.composer-title').focus();
   composer.querySelector('.composer-cancel').addEventListener('click', () => composer.remove());
-
   composer.querySelector('.composer-save').addEventListener('click', async () => {
     const title = composer.querySelector('.composer-title').value.trim();
     const body  = composer.querySelector('.composer-body').value.trim();
@@ -111,18 +110,7 @@ function openComposer(page) {
   });
 }
 
-// ── Init ──────────────────────────────────────────────────────
-async function init() {
-  
-
-  await fetchEntries();
-  ['academics', 'writing', 'forays'].forEach(renderEntries);
-}
-
-init();
-
-
-// ── Render a GRID entry (academics + forays) ──────────────────
+// ── Render a GRID entry  ──────────────────
 function buildGridEntryEl(entry, page, entries) {
   const el = document.createElement('div');
   el.className = 'entry-card';
@@ -163,7 +151,7 @@ function buildGridEntryEl(entry, page, entries) {
   return el;
 }
 
-// ── Render a BLOG entry (writing) ─────────────────────────────
+// ── Render a BLOG entry ─────────────────────────────
 function buildEntryEl(entry, page, entries) {
   const el = document.createElement('div');
   el.className = 'entry';
@@ -182,8 +170,13 @@ function buildEntryEl(entry, page, entries) {
     allEntries[page] = allEntries[page].filter(e => e.id !== entry.id);
     await persistEntries();
     el.remove();
-    });
+  });
   return el;
 }
 
-// ── Wire up + buttons and load on init ────────────────────────
+// ── Init ──────────────────────────────────────────────────────
+async function init() {
+  await fetchEntries();
+  allPages.forEach(renderEntries);
+}
+init();
