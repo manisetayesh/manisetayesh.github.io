@@ -18,9 +18,9 @@ function renderMarkdown(md) {
 }
 
 // ── Render all saved entries for a page ───────────────────────
-let allEntries = { academics: [], writing: [], forays: [] };
-const gridPages = ['academics', 'forays'];
-const allPages = ['academics', 'writing', 'forays']
+const allPages = [...document.querySelectorAll('.page')].map(el => el.id.replace('page-', ''));
+const gridPages = [...document.querySelectorAll('.page[data="grid"]')].map(el => el.id.replace('page-', ''));
+const descPages = [...document.querySelectorAll('.page[data="desc"]')].map(el => el.id.replace('page-', '')); 
 const IS_LOCAL = window.location.hostname === 'localhost';
 const API = IS_LOCAL ? '' : 'https://manisetayesh.github.io/';
 
@@ -34,11 +34,15 @@ document.querySelectorAll('.add-entry-btn').forEach(btn => {
 });
 
 async function fetchEntries() {
-  const res = await fetch(`${API}/data/entries.json`);
-  const text = await res.text();
-  allEntries = JSON.parse(text);
+  try {
+    const res = await fetch(`${API}/data/entries.json`);
+    const text = await res.text();
+    allEntries = JSON.parse(text);
+  } catch (e) {
+    console.log('no entries file found, starting fresh');
+    allEntries = Object.fromEntries(allPages.map(p => [p, []]));
+  }
 }
-
 async function persistEntries() {
   if (!IS_LOCAL) return; 
   await fetch('/api/entries', {
@@ -54,7 +58,10 @@ function renderEntries(page) {
   const container = document.getElementById(`entries-${page}`);
   if (!container) return;
   const entries = allEntries[page] || [];
-  if (gridPages.includes(page)) {
+  if (descPages.includes(page)) {
+    container.className = 'entries entries-desc';
+    if (entries[0]) { container.appendChild(buildDescEntryEl(entries[0], page)) };
+  } else if (gridPages.includes(page)) {
     container.className = 'entries entries-grid';
     entries.forEach(entry => container.appendChild(buildGridEntryEl(entry, page, entries)));
   } else {
@@ -66,47 +73,52 @@ function renderEntries(page) {
 function openComposer(page) {
   const container = document.getElementById(`entries-${page}`);
   if (document.querySelector(`.entry-composer[data-page="${page}"]`)) return;
-
+  const existing = descPages.includes(page) ? (allEntries[page]?.[0]?.body || '') : '';
   const composer = document.createElement('div');
   composer.className = 'entry-composer';
   composer.dataset.page = page;
   composer.innerHTML = `
-    <input type="text" placeholder="Title" class="composer-title" />
-    <textarea placeholder="Write in markdown…" class="composer-body"></textarea>
+    ${!descPages.includes(page) ? '<input type="text" placeholder="Title" class="composer-title" />' : ''}
+    <textarea placeholder="Write in markdown…" class="composer-body">${existing}</textarea>
     <div class="composer-actions">
       <button class="composer-save">Save</button>
       <button class="composer-cancel">Cancel</button>
     </div>
   `;
-
   if (gridPages.includes(page)) {
     container.insertAdjacentElement('beforebegin', composer);
   } else {
     container.prepend(composer);
   }
-
-  composer.querySelector('.composer-title').focus();
+  
+  // composer.querySelector('.composer-title').focus();
   composer.querySelector('.composer-cancel').addEventListener('click', () => composer.remove());
   composer.querySelector('.composer-save').addEventListener('click', async () => {
-    const title = composer.querySelector('.composer-title').value.trim();
     const body  = composer.querySelector('.composer-body').value.trim();
     if (!body) return;
-
-    const entry = {
-      id:    Date.now().toString(),
-      title: title || 'Untitled',
-      date:  new Date().toLocaleDateString('en-CA'),
-      body
-    };
-
-    allEntries[page].unshift(entry);
-    await persistEntries();
-
-    composer.remove();
-    const entryEl = gridPages.includes(page)
-      ? buildGridEntryEl(entry, page, allEntries[page])
-      : buildEntryEl(entry, page, allEntries[page]);
-    document.getElementById(`entries-${page}`).prepend(entryEl);
+    if (descPages.includes(page)) {
+      allEntries[page] = [{ id: page, body, date: new Date().toLocaleDateString('en-CA') }];
+      await persistEntries();
+      composer.remove();
+      container.innerHTML = '';
+      container.appendChild(buildDescEntryEl(allEntries[page][0], page));
+    } else {
+      const title = composer.querySelector('.composer-title').value.trim();
+      const entry = {
+        id: Date.now().toString(),
+        title: title || 'Untitled',
+        date: new Date().toLocaleDateString('en-CA'),
+        body
+      };
+      allEntries[page].unshift(entry);
+      await persistEntries();
+      composer.remove();
+      const entryEl = gridPages.includes(page)
+        ? buildGridEntryEl(entry, page, allEntries[page])
+        : buildEntryEl(entry, page, allEntries[page]);
+      document.getElementById(`entries-${page}`).prepend(entryEl);
+    }
+    
   });
 }
 
@@ -174,9 +186,22 @@ function buildEntryEl(entry, page, entries) {
   return el;
 }
 
+function buildDescEntryEl(entry, page) {
+  const el = document.createElement('div');
+  el.className = 'entry';
+  el.dataset.id = entry.id;
+  el.innerHTML = `<div class="entry-body">${renderMarkdown(entry.body)}</div>`;
+  return el;
+}
 // ── Init ──────────────────────────────────────────────────────
 async function init() {
   await fetchEntries();
   allPages.forEach(renderEntries);
 }
 init();
+
+const saveBtn = document.getElementById('save-btn');
+if (!IS_LOCAL) {
+  saveBtn.style.display = 'none';
+  saveBtn.disabled = true;
+}

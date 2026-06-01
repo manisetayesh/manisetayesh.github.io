@@ -1,4 +1,4 @@
-const pages   = document.querySelectorAll('.page');
+const pages = document.querySelectorAll('.page');
 const navLinks = document.querySelectorAll('a[data-page]');
 
 function showPage(id) {
@@ -20,6 +20,15 @@ navLinks.forEach(a => {
         e.preventDefault();
         showPage(a.dataset.page);
     });
+});
+
+
+document.getElementById('save-btn').addEventListener('click', async () => {
+    const res = await fetch('/api/push', {
+        method: 'POST',
+    });
+    const data = await res.json();
+    console.log(data.ok ? 'pushed' : data.message);
 });
 
 document.getElementById('page-writing').classList.add('animate');

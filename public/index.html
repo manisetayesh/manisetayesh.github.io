@@ -15,27 +15,30 @@
 
         <header>
             <div class="header-buttons">
-                <button id="home-btn" class="header-btn" aria-label="Go home">⌂</button>
-                <button id="theme-toggle" class="header-btn" aria-label="Toggle dark mode">◐</button>
+                <button id="home-btn" class="header-btn">⌂</button>
+                <button id="theme-toggle" class="header-btn">◐</button>
+                <button id="save-btn" class="header-btn">⇡</button>
             </div>
             <div class="nav-links">
                 <a href="#" data-page="academics">Academics</a>
+                <a href="#" data-page="extras">Extras</a>
+                <a href="#" data-page="exp">Experiences</a>
                 <a href="#" data-page="writing">Writings</a>
-                <a href="#" data-page="forays">Extras</a>
                 <a href="#" data-page="about">About</a>
             </div>
         </header>
     </div>
 
-    <div id="page-home" class="page active">
+    <div id="page-home" class="page active" data="desc">
         <div class="container">
             <section class="hero">
-            <h1>Welcome Home</h1>
+                <div id="entries-home"></div>
             </section>
+            <button class="add-entry-btn" data-page="home">+</button>
         </div>
     </div>
 
-    <div id="page-academics" class="page">
+    <div id="page-academics" class="page" data="grid">
         <div class="container">
             <section class="hero">
                 <h1>Academics</h1>
@@ -46,8 +49,29 @@
             <div class="entries" id="entries-academics"></div>
         </div>
     </div>
-
-    <div id="page-writing" class="page">
+    <div id="page-extras" class="page" data="grid">
+        <div class="container">
+        <section class="hero">
+            <h1>Extras</h1>
+        </section>
+            <div class="entries-header">
+                <button class="add-entry-btn" data-page="extras">+</button>
+            </div>
+            <div class="entries" id="entries-extras"></div>
+        </div>
+    </div>
+    <div id="page-exp" class="page" data="blog">
+        <div class="container">
+            <section class="hero">
+                <h1>Experiences</h1>
+            </section>
+            <div class="entries-header">
+                <button class="add-entry-btn" data-page="exp">+</button>
+            </div>
+            <div class="entries" id="entries-exp"></div>
+        </div>
+    </div>
+    <div id="page-writing" class="page" data="blog">
         <div class="container">
             <section class="hero">
                 <h1>Writings</h1>
@@ -59,28 +83,14 @@
         </div>
     </div>
 
-    <div id="page-forays" class="page">
+    <div id="page-about" class="page" data="desc">
         <div class="container">
-        <section class="hero">
-            <h1>Extras</h1>
-        </section>
-            <div class="entries-header">
-                <button class="add-entry-btn" data-page="forays">+</button>
-            </div>
-            <div class="entries" id="entries-forays"></div>
+            <section class="about-section hero">
+                <div id="entries-about"></div>
+            </section>
+            <button class="add-entry-btn" data-page="about">+</button>
         </div>
     </div>
-
-  <div id="page-about" class="page">
-    <div class="container">
-      <section class="about-section hero">
-        <div>
-          <h2>About me</h2>
-          <p>Some guy</p>
-        </div>
-      </section>
-    </div>
-  </div>
 
   <div class="container">
     <footer>
