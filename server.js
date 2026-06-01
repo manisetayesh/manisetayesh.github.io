@@ -4,10 +4,10 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 const app = express();
-const DATA_FILE = path.join(__dirname, 'public', 'data', 'entries.json');
+const DATA_FILE = path.join(__dirname, 'data', 'entries.json');
 
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(''));
 
 app.get('/api/entries', (req, res) => {
   if (!fs.existsSync(DATA_FILE)) {
@@ -24,7 +24,7 @@ app.post('/api/entries', (req, res) => {
 
 app.post('/api/push', (req, res) => {
   try {
-    execSync('git add public/data/entries.json');
+    execSync('git add data/entries.json');
     execSync(`git commit -m "entries: ${new Date().toLocaleDateString('en-CA')}"`);
     execSync('git push');
     res.json({ ok: true });

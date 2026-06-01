@@ -22,15 +22,18 @@ navLinks.forEach(a => {
     });
 });
 
-
-document.getElementById('save-btn').addEventListener('click', async () => {
+const saveBtn = document.getElementById('save-btn');
+saveBtn.addEventListener('click', async () => {
     const res = await fetch('/api/push', {
         method: 'POST',
     });
     const data = await res.json();
     console.log(data.ok ? 'pushed' : data.message);
 });
-
+if (window.location.hostname !== 'localhost') {
+  saveBtn.style.display = 'none';
+  saveBtn.disabled = true;
+}
 document.getElementById('page-writing').classList.add('animate');
 document.getElementById('theme-toggle').addEventListener('click', () => {
     document.body.classList.toggle('dark');
@@ -38,3 +41,4 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
 document.getElementById('home-btn').addEventListener('click', () => {
     showPage('home')
 })
+
