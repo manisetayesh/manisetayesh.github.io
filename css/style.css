@@ -325,9 +325,10 @@ footer {
     animation: fadeIn 0.3s forwards;
 }
 
-.entry-card:hover{
+.entry-card:not(.entry-card-editing):hover{
     background: var(--ink);
     color: var(--bg);
+    transition: background 0.5s, color 0.5s;
 }
 
 .entry-card-expanded {
@@ -355,7 +356,7 @@ footer {
     cursor: default;
 }
 
-.entry-delete {
+.entry-btn {
     background: none;
     border: 1px solid currentColor;
     color: currentColor;
@@ -367,7 +368,7 @@ footer {
     transition: opacity 0.2s;
 }
 
-.entry-delete:hover {
+.entry-btn:hover {
     opacity: 1;
 }
 
@@ -389,4 +390,13 @@ footer {
     letter-spacing: 0.08em;
     cursor: pointer;
     transition: color 0.2s;
+}
+
+.entry-card-editing {
+    pointer-events: none;
+}
+
+.entry-card-editing .entry-composer,
+.entry-card-editing .entry-composer * {
+    pointer-events: all;
 }

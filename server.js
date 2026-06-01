@@ -7,7 +7,7 @@ const app = express();
 const DATA_FILE = path.join(__dirname, 'data', 'entries.json');
 
 app.use(express.json());
-app.use(express.static(''));
+app.use(express.static('.'));
 
 app.get('/api/entries', (req, res) => {
   if (!fs.existsSync(DATA_FILE)) {
