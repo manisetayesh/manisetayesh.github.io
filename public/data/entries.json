@@ -1,12 +1,14 @@
 {
-  "academics": [],
-  "writing": [],
-  "forays": [
+  "home": [
     {
-      "id": "1780023864816",
-      "title": "This is a title",
-      "date": "2026-05-28",
-      "body": "FTasfas"
+      "id": "home",
+      "body": "Place holder for a home page description\n# WOW",
+      "date": "2026-05-31"
     }
-  ]
+  ],
+  "academics": [],
+  "extras": [],
+  "exp": [],
+  "writing": [],
+  "about": []
 }
