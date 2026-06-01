@@ -12,9 +12,7 @@ High importance, hard fix
 
 Low importance, easy fix
 - Add different color palette options
-- Experiences tab
 - page descriptions
-- Make the update process less painful (autopush button on local side?)
 
 Long term
 - migrate to server-based websites with cloudflare?
