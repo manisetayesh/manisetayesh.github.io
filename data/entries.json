@@ -2,18 +2,25 @@
   "home": [
     {
       "id": "home",
-      "date": "2026-05-31",
+      "date": "2026-06-02",
       "body": "Place holder for a home page description\n# WOW 2"
     }
   ],
   "academics": [],
-  "extras": [],
+  "extras": [
+    {
+      "id": "1781407490062",
+      "title": "asda",
+      "date": "2026-06-13",
+      "body": "- asdasd\n- Assad"
+    }
+  ],
   "exp": [],
   "writing": [],
   "about": [
     {
       "id": "about",
-      "date": "2026-05-31",
+      "date": "2026-06-02",
       "body": "does this work"
     }
   ]
