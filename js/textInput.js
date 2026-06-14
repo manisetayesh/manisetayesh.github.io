@@ -1,20 +1,113 @@
-// ── Minimal markdown renderer ──────────────────────────────────
+// // ── Minimal markdown renderer ──────────────────────────────────
+// function renderMarkdown(md) {
+//   return md
+//     .replace(/&/g, '&amp;')
+//     .replace(/</g, '&lt;')
+//     .replace(/>/g, '&gt;')
+//     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+//     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+//     .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+//     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+//     .replace(/\*(.+?)\*/g, '<em>$1</em>')
+//     .replace(/`(.+?)`/g, '<code>$1</code>')
+//     .replace(/^- (.+)$/gm, '<li>$1</li>')
+//     .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+//     .replace(/\n\n+/g, '</p><p>')
+//     .replace(/^(?!<[hul])(.+)$/gm, '<p>$1</p>')
+//     .replace(/<p><\/p>/g, '');
+// }
+
+// ── Markdown renderer ──────────────────────────────────
 function renderMarkdown(md) {
-  return md
+  // Protect code blocks from further processing
+  const codeBlocks = [];
+  md = md.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    codeBlocks.push(`<pre><code class="language-${lang}">${code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</code></pre>`);
+    return `\x00CODE${codeBlocks.length - 1}\x00`;
+  });
+
+  const inlineCodes = [];
+  md = md.replace(/`([^`]+)`/g, (_, code) => {
+    inlineCodes.push(`<code>${code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</code>`);
+    return `\x00INLINE${inlineCodes.length - 1}\x00`;
+  });
+
+  // Protect block equations
+  const blockEquations = [];
+  md = md.replace(/\$\$([\s\S]*?)\$\$/g, (_, eq) => {
+    blockEquations.push(`<div class="math-block">\\[${eq}\\]</div>`);
+    return `\x00BLOCKEQ${blockEquations.length - 1}\x00`;
+  });
+
+  // Protect inline equations
+  const inlineEquations = [];
+  md = md.replace(/\$([^\$\n]+)\$/g, (_, eq) => {
+    inlineEquations.push(`<span class="math-inline">\\(${eq}\\)</span>`);
+    return `\x00INLINEEQ${inlineEquations.length - 1}\x00`;
+  });
+
+  md = md
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`(.+?)`/g, '<code>$1</code>')
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
-    .replace(/\n\n+/g, '</p><p>')
-    .replace(/^(?!<[hul])(.+)$/gm, '<p>$1</p>')
-    .replace(/<p><\/p>/g, '');
+    // Headings
+    .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^### (.+)$/gm,  '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,   '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm,    '<h1>$1</h1>')
+    // Horizontal rule
+    .replace(/^(-{3,}|\*{3,}|_{3,})$/gm, '<hr>')
+    // Blockquote (each line becomes its own block — CSS can visually merge adjacent ones)
+    .replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>')
+    // Images before links
+    .replace(/!\[([^\]]*)\]\(([^)"]+?)(?:\s+"([^"]*)")?\)/g,
+      (_, alt, src, title) =>
+        `<img src="${src}" alt="${alt}"${title ? ` title="${title}"` : ''} style="max-width:100%">`)
+    // Links
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g,     '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,         '<em>$1</em>')
+    .replace(/~~(.+?)~~/g,         '<del>$1</del>')
+    .replace(/==(.+?)==/g,         '<mark>$1</mark>')
+    // Mark list items with distinct, line-scoped tokens (don't wrap yet)
+    .replace(/^\d+\.\s+(.+)$/gm, '\x00OLI\x00$1\x00/OLI\x00')
+    .replace(/^[-*+]\s+(.+)$/gm, '\x00ULI\x00$1\x00/ULI\x00');
+
+  // Group consecutive ordered-list lines into a single <ol>
+  md = md.replace(/(?:\x00OLI\x00.*\x00\/OLI\x00\n?)+/g, block => {
+    const items = block.match(/\x00OLI\x00(.*)\x00\/OLI\x00/g)
+      .map(item => item.replace(/\x00OLI\x00(.*)\x00\/OLI\x00/, '<li>$1</li>'))
+      .join('');
+    return `<ol>${items}</ol>\n`;
+  });
+
+  // Group consecutive unordered-list lines into a single <ul>
+  md = md.replace(/(?:\x00ULI\x00.*\x00\/ULI\x00\n?)+/g, block => {
+    const items = block.match(/\x00ULI\x00(.*)\x00\/ULI\x00/g)
+      .map(item => item.replace(/\x00ULI\x00(.*)\x00\/ULI\x00/, '<li>$1</li>'))
+      .join('');
+    return `<ul>${items}</ul>\n`;
+  });
+
+  // Paragraphs: wrap remaining plain-text lines, but skip lines that
+  // are already block-level HTML (headings, lists, hr, blockquote, code placeholders)
+  const blockTag = /^<(h[1-4]|ul|ol|li|blockquote|hr|pre|div|img)/;
+  md = md.split('\n').map(line => {
+    const trimmed = line.trim();
+    if (trimmed === '') return '';
+    if (blockTag.test(trimmed)) return trimmed;
+    if (/^\x00(CODE|BLOCKEQ)\d+\x00$/.test(trimmed)) return trimmed;
+    return `<p>${trimmed}</p>`;
+  }).join('\n');
+
+  // Restore protected blocks
+  codeBlocks.forEach((block, i)   => { md = md.replace(`\x00CODE${i}\x00`, block); });
+  inlineCodes.forEach((code, i)   => { md = md.replace(`\x00INLINE${i}\x00`, code); });
+  blockEquations.forEach((eq, i)  => { md = md.replace(`\x00BLOCKEQ${i}\x00`, eq); });
+  inlineEquations.forEach((eq, i) => { md = md.replace(`\x00INLINEEQ${i}\x00`, eq); });
+
+  return md;
 }
 
 const allPages = [...document.querySelectorAll('.page')].map(el => el.id.replace('page-', ''));

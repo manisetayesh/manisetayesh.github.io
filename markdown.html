@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>renderMarkdown tests</title>
+  <style>
+    body { font-family: monospace; padding: 20px; }
+    .pass { color: green; } .fail { color: red; }
+    summary { cursor: pointer; margin: 4px 0; }
+    .expected, .got { white-space: pre; padding: 4px 8px; background: #f5f5f5; margin: 2px 0; }
+  </style>
+</head>
+<body>
+<script src="js/textInput.js"></script>
+<script>
+
+// Normalize by stripping wrapping <p>...</p> for single-line non-block inputs
+function strip(html) {
+  return html.replace(/^<p>(.*)<\/p>$/s, '$1');
+}
+
+const tests = [
+  // Headings — block elements, no <p> wrapping
+  { input: '# Hello',        expected: '<h1>Hello</h1>' },
+  { input: '## Hello',       expected: '<h2>Hello</h2>' },
+  { input: '### Hello',      expected: '<h3>Hello</h3>' },
+
+  // Inline formatting — compare with <p> stripped
+  { input: '**bold**',       expected: '<strong>bold</strong>',         compare: strip },
+  { input: '*italic*',       expected: '<em>italic</em>',               compare: strip },
+  { input: '~~struck~~',     expected: '<del>struck</del>',             compare: strip },
+  { input: '==highlight==',  expected: '<mark>highlight</mark>',        compare: strip },
+  { input: '***both***',     expected: '<strong><em>both</em></strong>', compare: strip },
+  { input: '`code`',         expected: '<code>code</code>',             compare: strip },
+
+  // Links & images
+  { input: '[click](https://example.com)', expected: '<a href="https://example.com" target="_blank" rel="noopener">click</a>', compare: strip },
+  { input: '![alt](img.png)',              expected: '<img src="img.png" alt="alt" style="max-width:100%">',                  compare: strip },
+
+  // Equations
+  { input: '$x^2$',       expected: '<span class="math-inline">\\(x^2\\)</span>', compare: strip },
+  { input: '$$\nx^2\n$$', expected: '<div class="math-block">\\[\nx^2\n\\]</div>' },
+
+  // Code blocks — block elements, no <p>
+  { input: '```\nblock\n```',             expected: '<pre><code class="language-">block\n</code></pre>' },
+  { input: '```js\nlet x = 1 < 2;\n```', expected: '<pre><code class="language-js">let x = 1 &lt; 2;\n</code></pre>' },
+
+  // Lists
+  { input: '- a\n- b',  expected: '<ul><li>a</li>\n<li>b</li></ul>' },
+  { input: '1. a\n2. b',expected: '<ol><li>a</li>\n<li>b</li></ol>' },
+
+  // Other block elements
+  { input: '> note', expected: '<blockquote>note</blockquote>' },
+  { input: '---',    expected: '<hr>' },
+
+  // Paragraphs
+  { input: 'hello\n\nworld', expected: '<p>hello</p><p>world</p>' },
+
+  // Escaping & protection
+  { input: '`<b>`',          expected: '<code>&lt;b&gt;</code>',  compare: strip },
+  { input: '`**not bold**`', expected: '<code>**not bold**</code>', compare: strip },
+];
+pass = 0, fail = 0;
+const out = document.body;
+
+for (const { input, expected, compare } of tests) {
+  const raw = renderMarkdown(input);
+  const got = compare ? compare(raw) : raw;
+  let ok  = got === expected;
+  ok ? pass++ : fail++;
+
+  const el = document.createElement('details');
+  el.open = !ok;
+  el.innerHTML = `
+    <summary class="${ok ? 'pass' : 'fail'}">${ok ? '✓' : '✗'} ${JSON.stringify(input)}</summary>
+    ${ok ? '' : `<div class="expected">expected: ${expected}</div><div class="got">got:      ${got}</div>`}
+  `;
+  out.appendChild(el);
+}
+
+const summary = document.createElement('p');
+summary.innerHTML = `<strong>${pass}/${pass+fail} passed</strong>`;
+out.prepend(summary);
+</script>
+</body>
+</html>

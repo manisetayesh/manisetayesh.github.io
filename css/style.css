@@ -400,3 +400,10 @@ footer {
 .entry-card-editing .entry-composer * {
     pointer-events: all;
 }
+
+ul {
+    margin-left: 1rem
+}
+ol {
+    margin-left: 1.8rem
+}
